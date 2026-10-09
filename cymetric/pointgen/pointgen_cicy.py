@@ -283,11 +283,18 @@ class CICYPointGenerator(PointGenerator):
         degrees = np.zeros(len(self.ambient), dtype=np.int32)
         for j in range(self.nhyper):
             d = np.argmax(self.conf[j])
-            if degrees[d] == self.ambient[d]:
+            row_copy = list(self.conf[j])
+            while degrees[d] == self.ambient[d]:
                 # in case we already exhausted all degrees of freedom
                 # shouldn't really be here other than for
                 # some interesting p1 splits (redundant CICY description?)
-                d = np.argmax(self.conf[j, d + 1:])
+                row_copy[d] = 0
+                if max(row_copy) == 0:
+                    raise ValueError(
+                        f"_find_degrees: hypersurface {j} cannot be placed -- every ambient "
+                        f"factor it appears in is exhausted (degrees={list(degrees)}, "
+                        f"ambient={list(self.ambient)})")
+                d = np.argmax(row_copy)
             degrees[d] += 1
         return degrees
 
